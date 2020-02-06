@@ -10,7 +10,7 @@ import (
 type Probe interface {
 	BeforeStart() error            // Called everytime before the probe is started
 	AfterStart() error             // Called everytime after a successful start
-	Fetch() (interface{}, error)   // Called to fetch data
+	Fetch() (*RawSignal, error)    // Called to fetch data
 	BeforeShutdown() error         // Called before the probe is shutdown
 	GetConfig() *Config            // Returns the config
 	GetRedisClient() *redis.Client // Returns the redis client

@@ -1,6 +1,7 @@
 package prober
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -73,10 +74,14 @@ func (e *executor) process() {
 	}
 }
 
-func (e *executor) saveInRedis(data interface{}) error {
-	redisClient := e.probe.GetRedisClient()
+func (e *executor) saveInRedis(data *probe.RawSignal) error {
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
 
-	return redisClient.LPush(viper.GetString("redis.to_process_queue"), data).Err()
+	redisClient := e.probe.GetRedisClient()
+	return redisClient.LPush(viper.GetString("redis.to_process_queue"), bytes).Err()
 }
 
 // NewExecutor creates and returns a new Executor

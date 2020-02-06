@@ -23,28 +23,33 @@ type HTTPProbe struct {
 }
 
 // Fetch sends a request to a remote URL
-func (p *HTTPProbe) Fetch() (interface{}, error) {
+func (p *HTTPProbe) Fetch() (*probe.RawSignal, error) {
 	req, err := http.NewRequest(
 		p.parsedOpts.Method,
 		p.parsedOpts.URL,
 		nil,
 	)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(body), nil
+	signal := &probe.RawSignal{
+		ProbeConfigID: p.Config.ID,
+		Data:          len(body),
+	}
+
+	return signal, nil
 }
 
 // New creates a new HTTPProbe
