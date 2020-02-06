@@ -3,12 +3,14 @@ package registrar
 import (
 	"errors"
 	"fmt"
+
 	"github.com/affanshahid/oversight/prober/probe"
+	"github.com/go-redis/redis/v7"
 )
 
 // ProbeFactory is a type alias for a function which
 // creates a Probe given a config
-type ProbeFactory = func(conf *probe.Config) (probe.Probe, error)
+type ProbeFactory = func(conf *probe.Config, redisClient *redis.Client) (probe.Probe, error)
 
 var registry = make(map[string]ProbeFactory)
 
@@ -34,12 +36,12 @@ func Register(key string, factory ProbeFactory) {
 
 // NewProbe creates a new probe using config.Descriminator as the key
 // to retrieve the factory from the registry
-func NewProbe(config *probe.Config) (probe.Probe, error) {
+func NewProbe(config *probe.Config, redisClient *redis.Client) (probe.Probe, error) {
 	factory, exists := registry[config.Descriminator]
 
 	if !exists {
 		return nil, fmt.Errorf("key '%s' not registered: %w", config.Descriminator, ErrNotRegistered)
 	}
 
-	return factory(config)
+	return factory(config, redisClient)
 }

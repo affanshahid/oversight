@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/affanshahid/oversight/prober"
 	"github.com/affanshahid/oversight/prober/httpprobe"
 	"github.com/affanshahid/oversight/prober/probe"
+	"github.com/go-redis/redis/v7"
 
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/gorm/dialects/postgres"
@@ -72,7 +74,10 @@ func main() {
 
 	db.Create(&pc2)
 
-	prober := prober.New(db)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%s", viper.GetString("redis.host"), viper.GetString("redis.port")),
+	})
+	prober := prober.New(db, redisClient)
 	prober.Start()
 
 	select {}

@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
 	"github.com/affanshahid/oversight/prober/probe"
 	"github.com/affanshahid/oversight/prober/registrar"
+	"github.com/go-redis/redis/v7"
 )
 
 // HTTPOptions are the HTTPProbe specific options
@@ -21,7 +23,7 @@ type HTTPProbe struct {
 }
 
 // Fetch sends a request to a remote URL
-func (p *HTTPProbe) Fetch() (string, error) {
+func (p *HTTPProbe) Fetch() (interface{}, error) {
 	req, err := http.NewRequest(
 		p.parsedOpts.Method,
 		p.parsedOpts.URL,
@@ -46,7 +48,7 @@ func (p *HTTPProbe) Fetch() (string, error) {
 }
 
 // New creates a new HTTPProbe
-func New(config *probe.Config) (probe.Probe, error) {
+func New(config *probe.Config, redisClient *redis.Client) (probe.Probe, error) {
 	var opts HTTPOptions
 
 	err := json.Unmarshal(config.Options.RawMessage, &opts)
@@ -56,7 +58,10 @@ func New(config *probe.Config) (probe.Probe, error) {
 	}
 
 	return &HTTPProbe{
-		BaseProbe:  &probe.BaseProbe{Config: config},
+		BaseProbe: &probe.BaseProbe{
+			Config:      config,
+			RedisClient: redisClient,
+		},
 		parsedOpts: opts,
 	}, nil
 }

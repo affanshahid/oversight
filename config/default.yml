@@ -1,6 +1,5 @@
 host: localhost
 port: 4200
-banner: Hello I am dev
 
 db:
   host: localhost
@@ -8,3 +7,9 @@ db:
   username: postgres
   password: postgres
   database: oversight
+
+redis:
+  host: localhost
+  port: 6379
+  to_process_queue: "PROCESS"
+  under_process_queue: "UNDER_PROCESS"

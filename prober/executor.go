@@ -2,8 +2,10 @@ package prober
 
 import (
 	"fmt"
-	"github.com/affanshahid/oversight/prober/probe"
 	"time"
+
+	"github.com/affanshahid/oversight/prober/probe"
+	"github.com/spf13/viper"
 )
 
 type executor struct {
@@ -56,13 +58,25 @@ func (e *executor) process() {
 		}
 
 		data, err := e.probe.Fetch()
-		if err == nil {
-			fmt.Printf("[%s] Got data length: %d\n", e.probe.GetConfig().ID, len(data))
+		if err != nil {
+			fmt.Println(err)
+			// TODO: what to do in case of error?
+			continue
 		}
-		// TODO: what to do in case of error?
+
+		err = e.saveInRedis(data)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		time.Sleep(time.Duration(e.probe.GetConfig().Interval) * time.Millisecond)
 	}
+}
+
+func (e *executor) saveInRedis(data interface{}) error {
+	redisClient := e.probe.GetRedisClient()
+
+	return redisClient.LPush(viper.GetString("redis.to_process_queue"), data).Err()
 }
 
 // NewExecutor creates and returns a new Executor
